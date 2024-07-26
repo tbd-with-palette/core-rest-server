@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-rest-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      io.kompose.service: core-rest-server
+  template:
+    metadata:
+      labels:
+        io.kompose.service: core-rest-server
+    spec:
+      containers:
+        - image: vad1mo/hello-world-rest
+          name: core-rest-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: core-rest-server
+  name: core-rest-server
+spec:
+  ports:
+    - name: "80"
+      port: 80
+      targetPort: 5050
+  selector:
+    io.kompose.service: core-rest-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app: core-rest-server
+    app.kubernetes.io/instance: code-server
+  name: core-rest-server
+spec:
+  rules:
+  - host: code-dev.local
+    http:
+      paths:
+        - pathType: Prefix
+          path: "/api"
+          backend:
+            service:
+              name: core-rest-server
+              port:
+                number: 5050
+status:
+  loadBalancer: {}
